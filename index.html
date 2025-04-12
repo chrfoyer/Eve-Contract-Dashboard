@@ -23,10 +23,41 @@
         .container {
             max-width: 1200px;
         }
+        .stats-card {
+            background-color: #2a2a2a; /* Slightly lighter background */
+            border: 1px solid #3a3a3a; /* Lighter border */
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .stats-card h5 {
+            color: #8ab4f8; /* Light blue color */
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .stats-card h2 {
+            color: #ffffff; /* Bright white for the numbers */
+            font-size: 26px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .stats-profit {
+            color: #66bb6a !important; /* Brighter green */
+        }
+
+        .stats-loss {
+            color: #ff5252 !important; /* Brighter red */
+        }
         .card {
             background-color: #1e1e1e;
-            border: 1px solid #333;
+            border: 1px solid #383838; /* Slightly lighter border */
             margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Add shadow for depth */
         }
         .card-header {
             background-color: #272727;
@@ -34,12 +65,29 @@
         }
         .table {
             color: #e0e0e0;
+            border-collapse: separate;
+            border-spacing: 0;
         }
         .table-dark {
             background-color: #1e1e1e;
         }
         th, td {
             border-color: #333;
+        }
+        .table th {
+            background-color: #2d2d2d;
+            border-bottom: 2px solid #444;
+            padding: 12px 8px;
+            font-weight: 600;
+            color: #8ab4f8; /* Light blue for headers */
+        }
+        .table td {
+            padding: 10px 8px;
+            border-top: 1px solid #333;
+            vertical-align: middle;
+        }
+        .table tbody tr:hover {
+            background-color: #2a2a2a;
         }
         .text-profit {
             color: #4CAF50;
@@ -68,6 +116,77 @@
         #chart-container {
             height: 300px;
             margin-bottom: 20px;
+        }
+        .filter-section {
+            background-color: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .filter-section label {
+            font-weight: 500;
+            color: #8ab4f8; /* Light blue for labels */
+            margin-bottom: 5px;
+        }
+
+        .form-select, .form-control {
+            background-color: #1a1a1a !important;
+            border: 1px solid #444 !important;
+            color: #e0e0e0 !important;
+            padding: 10px 12px;
+        }
+
+        .form-select:focus, .form-control:focus {
+            background-color: #1a1a1a !important;
+            border-color: #5a5a5a !important;
+            box-shadow: 0 0 0 0.25rem rgba(138, 180, 248, 0.25) !important;
+        }
+
+        /* Improve buttons */
+        .btn-primary {
+            background-color: #4285f4 !important;
+            border-color: #4285f4 !important;
+        }
+
+        .btn-primary:hover {
+            background-color: #3367d6 !important;
+            border-color: #3367d6 !important;
+        }
+
+        .btn-success {
+            background-color: #0f9d58 !important;
+            border-color: #0f9d58 !important;
+        }
+
+        .btn-success:hover {
+            background-color: #0b8043 !important;
+            border-color: #0b8043 !important;
+        }
+
+        /* Card header styling */
+        .card-header {
+            background-color: #2d2d2d;
+            color: #8ab4f8;
+            font-weight: 600;
+            padding: 12px 20px;
+        }
+
+        /* Badge styling */
+        .badge {
+            padding: 6px 10px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        /* Make profit/loss colors more visible */
+        .text-profit {
+            color: #66bb6a !important; /* Brighter green */
+        }
+
+        .text-loss {
+            color: #ff5252 !important; /* Brighter red */
         }
     </style>
 </head>
@@ -146,35 +265,27 @@
                             <div class="col-md-6">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <div class="card">
-                                            <div class="card-body text-center">
-                                                <h5>Total Contracts</h5>
-                                                <h2 id="totalContracts">0</h2>
-                                            </div>
+                                        <div class="stats-card">
+                                            <h5>TOTAL CONTRACTS</h5>
+                                            <h2 id="totalContracts">0</h2>
                                         </div>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <div class="card">
-                                            <div class="card-body text-center">
-                                                <h5>Avg. Markup %</h5>
-                                                <h2 id="avgMarkup">0%</h2>
-                                            </div>
+                                        <div class="stats-card">
+                                            <h5>AVG. MARKUP %</h5>
+                                            <h2 id="avgMarkup">0%</h2>
                                         </div>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <div class="card">
-                                            <div class="card-body text-center">
-                                                <h5>Min Markup %</h5>
-                                                <h2 id="minMarkup">0%</h2>
-                                            </div>
+                                        <div class="stats-card">
+                                            <h5>MIN MARKUP %</h5>
+                                            <h2 id="minMarkup" class="stats-loss">0%</h2>
                                         </div>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <div class="card">
-                                            <div class="card-body text-center">
-                                                <h5>Max Markup %</h5>
-                                                <h2 id="maxMarkup">0%</h2>
-                                            </div>
+                                        <div class="stats-card">
+                                            <h5>MAX MARKUP %</h5>
+                                            <h2 id="maxMarkup" class="stats-profit">0%</h2>
                                         </div>
                                     </div>
                                 </div>

@@ -328,9 +328,35 @@ function updateStats() {
     }
     
     totalContractsElement.textContent = total;
+    
+    // Update average markup with appropriate styling
     avgMarkupElement.textContent = `${avgMarkup.toFixed(2)}%`;
+    if (avgMarkup > 0) {
+        avgMarkupElement.classList.add('stats-profit');
+        avgMarkupElement.classList.remove('stats-loss');
+    } else if (avgMarkup < 0) {
+        avgMarkupElement.classList.add('stats-loss');
+        avgMarkupElement.classList.remove('stats-profit');
+    } else {
+        avgMarkupElement.classList.remove('stats-profit', 'stats-loss');
+    }
+    
+    // Min markup is always shown in red (loss color) if negative
     minMarkupElement.textContent = `${minMarkup.toFixed(2)}%`;
+    if (minMarkup < 0) {
+        minMarkupElement.classList.add('stats-loss');
+    } else {
+        minMarkupElement.classList.remove('stats-loss');
+    }
+    
+    // Max markup is always shown in green (profit color) if positive
     maxMarkupElement.textContent = `${maxMarkup.toFixed(2)}%`;
+    if (maxMarkup > 0) {
+        maxMarkupElement.classList.add('stats-profit');
+    } else {
+        maxMarkupElement.classList.remove('stats-profit');
+        maxMarkupElement.classList.add('stats-loss');
+    }
 }
 
 function createOrUpdateChart() {
