@@ -1,7 +1,7 @@
 // Configuration
 const ACCESS_PASSWORD = "eve-contracts-2025"; // Change this to your desired password
 const CSV_FILES_URL = "data/"; // Directory where CSV files are stored
-const CSV_FILE_INDEX = "file-list.json"; // File containing the list of available CSVs
+const CSV_FILE_INDEX = "./data/file-list.json"; // File containing the list of available CSVs
 
 // Global variables
 let contractData = [];
@@ -92,25 +92,47 @@ async function loadData() {
         noDataMessage.style.display = "none";
         contractTableBody.innerHTML = "";
 
+        console.log("Attempting to fetch file list from:", CSV_FILE_INDEX);
+        
         // Get the list of available CSV files
         const response = await fetch(CSV_FILE_INDEX);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
         const files = await response.json();
+        console.log("File list loaded successfully:", files);
+
+        if (!files || files.length === 0) {
+            throw new Error("No CSV files found in the file list");
+        }
 
         // Find the latest CSV file (assumes filenames contain timestamps)
         files.sort((a, b) => b.localeCompare(a));
         latestCsvFile = files[0];
+        console.log("Latest CSV file:", latestCsvFile);
 
         // Load the CSV data
+        console.log("Attempting to fetch CSV from:", CSV_FILES_URL + latestCsvFile);
         const csvResponse = await fetch(CSV_FILES_URL + latestCsvFile);
+        
+        if (!csvResponse.ok) {
+            throw new Error(`HTTP error! Status: ${csvResponse.status}`);
+        }
+        
         const csvText = await csvResponse.text();
+        console.log("CSV data loaded, length:", csvText.length);
 
         // Parse the CSV
         Papa.parse(csvText, {
             header: true,
             dynamicTyping: true,
             complete: function(results) {
+                console.log("CSV parsing complete, rows:", results.data.length);
                 if (results.data && results.data.length > 0) {
                     contractData = results.data.filter(row => row.contract_id); // Filter out any empty rows
+                    console.log("Valid contract data rows:", contractData.length);
                     
                     // Update last updated info
                     const timestamp = latestCsvFile.match(/\d{8}_\d{6}/);
@@ -135,6 +157,7 @@ async function loadData() {
                     
                     loadingIndicator.style.display = "none";
                 } else {
+                    console.error("No valid data rows in CSV");
                     loadingIndicator.style.display = "none";
                     noDataMessage.style.display = "block";
                 }
@@ -150,7 +173,7 @@ async function loadData() {
         console.error("Error fetching data:", error);
         loadingIndicator.style.display = "none";
         noDataMessage.style.display = "block";
-        noDataMessage.textContent = "Error loading data. Please try again.";
+        noDataMessage.textContent = `Error loading data: ${error.message}`;
     }
 }
 
