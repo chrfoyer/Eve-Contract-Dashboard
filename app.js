@@ -233,24 +233,39 @@ function filterAndDisplayContracts() {
     
     // Sort contracts
     filtered.sort((a, b) => {
-        const [field, direction] = sortValue.split("_");
-        
+        const lastUnderscoreIndex = sortValue.lastIndexOf("_");
+        const field = sortValue.substring(0, lastUnderscoreIndex);
+        const direction = sortValue.substring(lastUnderscoreIndex + 1);
+    
+        console.log("Sorting by field:", field, "Direction:", direction);
+    
         let valueA, valueB;
-        if (field === "date") {
-            valueA = new Date(a.date_issued || 0);
-            valueB = new Date(b.date_issued || 0);
+    
+        // Handle different field types
+        if (field === "date_issued") {
+            valueA = a.date_issued ? new Date(a.date_issued).getTime() : 0;
+            valueB = b.date_issued ? new Date(b.date_issued).getTime() : 0;
         } else if (field === "title") {
             valueA = (a.title || "").toLowerCase();
             valueB = (b.title || "").toLowerCase();
+        } else if (field === "markup_percent") {
+            valueA = a.markup_percent !== undefined && a.markup_percent !== null ? Number(a.markup_percent) : -Infinity;
+            valueB = b.markup_percent !== undefined && b.markup_percent !== null ? Number(b.markup_percent) : -Infinity;
+        } else if (["price", "jita_sell_value", "markup_amount"].includes(field)) {
+            valueA = a[field] !== undefined && a[field] !== null ? Number(a[field]) : 0;
+            valueB = b[field] !== undefined && b[field] !== null ? Number(b[field]) : 0;
         } else {
-            valueA = a[field] || 0;
-            valueB = b[field] || 0;
+            valueA = a[field] || "";
+            valueB = b[field] || "";
         }
-        
+    
+        // Compare based on direction
         if (direction === "asc") {
-            return valueA > valueB ? 1 : -1;
+            return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+        } else if (direction === "desc") {
+            return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
         } else {
-            return valueA < valueB ? 1 : -1;
+            return 0; // Default to no sorting if direction is invalid
         }
     });
     
