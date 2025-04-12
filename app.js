@@ -278,7 +278,21 @@ function displayContracts(contracts) {
         const jitaValue = formatISK(contract.jita_sell_value);
         const markup = formatISK(contract.markup_amount);
         const markupPercent = contract.markup_percent ? `${contract.markup_percent.toFixed(2)}%` : "N/A";
-        const markupClass = contract.markup_percent > 0 ? "text-profit" : "text-loss";
+        
+        // Determine markup color class based on percentage
+        let markupClass = "";
+        if (contract.markup_percent !== null && contract.markup_percent !== undefined) {
+            if (contract.markup_percent < 0) {
+                markupClass = "markup-negative";  // Light blue for negative
+            } else if (contract.markup_percent <= 20) {
+                markupClass = "markup-low";       // Green for 0-20%
+            } else if (contract.markup_percent <= 30) {
+                markupClass = "markup-medium";    // Yellow for 20-30%
+            } else {
+                markupClass = "markup-high";      // Red for above 30%
+            }
+        }
+        
         const date = contract.date_issued ? new Date(contract.date_issued).toLocaleString() : "N/A";
         const title = contract.title || "Untitled Contract";
         
@@ -331,31 +345,46 @@ function updateStats() {
     
     // Update average markup with appropriate styling
     avgMarkupElement.textContent = `${avgMarkup.toFixed(2)}%`;
-    if (avgMarkup > 0) {
-        avgMarkupElement.classList.add('stats-profit');
-        avgMarkupElement.classList.remove('stats-loss');
-    } else if (avgMarkup < 0) {
-        avgMarkupElement.classList.add('stats-loss');
-        avgMarkupElement.classList.remove('stats-profit');
+    
+    // Apply color classes to average markup based on the value
+    avgMarkupElement.classList.remove('stats-markup-negative', 'stats-markup-low', 'stats-markup-medium', 'stats-markup-high');
+    
+    if (avgMarkup < 0) {
+        avgMarkupElement.classList.add('stats-markup-negative');
+    } else if (avgMarkup <= 20) {
+        avgMarkupElement.classList.add('stats-markup-low');
+    } else if (avgMarkup <= 30) {
+        avgMarkupElement.classList.add('stats-markup-medium');
     } else {
-        avgMarkupElement.classList.remove('stats-profit', 'stats-loss');
+        avgMarkupElement.classList.add('stats-markup-high');
     }
     
-    // Min markup is always shown in red (loss color) if negative
+    // Update min markup (usually negative, so will be blue)
     minMarkupElement.textContent = `${minMarkup.toFixed(2)}%`;
+    minMarkupElement.classList.remove('stats-markup-negative', 'stats-markup-low', 'stats-markup-medium', 'stats-markup-high');
+    
     if (minMarkup < 0) {
-        minMarkupElement.classList.add('stats-loss');
+        minMarkupElement.classList.add('stats-markup-negative');
+    } else if (minMarkup <= 20) {
+        minMarkupElement.classList.add('stats-markup-low');
+    } else if (minMarkup <= 30) {
+        minMarkupElement.classList.add('stats-markup-medium');
     } else {
-        minMarkupElement.classList.remove('stats-loss');
+        minMarkupElement.classList.add('stats-markup-high');
     }
     
-    // Max markup is always shown in green (profit color) if positive
+    // Update max markup (usually positive, could be any range)
     maxMarkupElement.textContent = `${maxMarkup.toFixed(2)}%`;
-    if (maxMarkup > 0) {
-        maxMarkupElement.classList.add('stats-profit');
+    maxMarkupElement.classList.remove('stats-markup-negative', 'stats-markup-low', 'stats-markup-medium', 'stats-markup-high');
+    
+    if (maxMarkup < 0) {
+        maxMarkupElement.classList.add('stats-markup-negative');
+    } else if (maxMarkup <= 20) {
+        maxMarkupElement.classList.add('stats-markup-low');
+    } else if (maxMarkup <= 30) {
+        maxMarkupElement.classList.add('stats-markup-medium');
     } else {
-        maxMarkupElement.classList.remove('stats-profit');
-        maxMarkupElement.classList.add('stats-loss');
+        maxMarkupElement.classList.add('stats-markup-high');
     }
 }
 
@@ -373,17 +402,12 @@ function createOrUpdateChart() {
         contract.markup_percent !== null &&
         !isNaN(contract.markup_percent));
     
-    // Group by markup percent ranges
+    // Group by markup percent ranges with new ranges that match the color scheme
     const ranges = [
-        { min: -100, max: -50, label: "-100% to -50%" },
-        { min: -50, max: -25, label: "-50% to -25%" },
-        { min: -25, max: -10, label: "-25% to -10%" },
-        { min: -10, max: 0, label: "-10% to 0%" },
-        { min: 0, max: 10, label: "0% to 10%" },
-        { min: 10, max: 25, label: "10% to 25%" },
-        { min: 25, max: 50, label: "25% to 50%" },
-        { min: 50, max: 100, label: "50% to 100%" },
-        { min: 100, max: Infinity, label: ">100%" }
+        { min: -100, max: 0, label: "Negative", color: '#64b5f6' },  // Light blue
+        { min: 0, max: 20, label: "0% to 20%", color: '#66bb6a' },   // Green
+        { min: 20, max: 30, label: "20% to 30%", color: '#ffee58' }, // Yellow
+        { min: 30, max: Infinity, label: "Above 30%", color: '#ff5252' } // Red
     ];
     
     const data = ranges.map(range => {
@@ -394,6 +418,7 @@ function createOrUpdateChart() {
     });
     
     const labels = ranges.map(range => range.label);
+    const colors = ranges.map(range => range.color);
     
     // Create the chart
     chart = new Chart(chartCanvas, {
@@ -403,11 +428,7 @@ function createOrUpdateChart() {
             datasets: [{
                 label: 'Number of Contracts',
                 data: data,
-                backgroundColor: [
-                    '#F44336', '#E91E63', '#9C27B0',
-                    '#3F51B5', '#2196F3', '#03A9F4',
-                    '#00BCD4', '#009688', '#4CAF50'
-                ],
+                backgroundColor: colors,
                 borderWidth: 1
             }]
         },
